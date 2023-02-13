@@ -1,0 +1,8 @@
+- mkdir ./newProject
+- Create a "C++ Executable" project with Clion
+  - Point to new empty dir
+  - Open this file for ref: https://github.com/raysan5/raylib/blob/master/projects/CMake/CMakeLists.txt
+    - remove "add_executable" from current CMakeLists.txt
+    - copy/paste all but the first 2 lines into current CMakeLists.txt
+    - change "cmake_minimum_require" version to 3.16 (current version for Ubuntu 20.04)
+    - change "add_executable" to point to "main.cpp"
