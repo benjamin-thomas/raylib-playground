@@ -14,7 +14,9 @@ int main() {
         // Update
         auto time = (float) GetTime();
         float x = sin(time);
+
         float x2 = sin(time) / 2.0f + 0.5f;
+        float y2 = cos(time) / 2.0f + 0.5f;
 
         auto red = (unsigned char) (255 * x2);
         const Color &orange = Color{red, 161, 0, 255};
@@ -32,6 +34,17 @@ int main() {
                         180 * x, 12, pink);
         DrawPolyLinesEx(Vector2{300, 300}, 9, 96,
                         180 * x, 3, DARKPURPLE);
+
+
+        float recWidth = 300;
+        float recX = (float) GetScreenWidth() / 2 - recWidth / 2;
+        const Rectangle &rec = Rectangle{recX, 420, recWidth, 100};
+        DrawRectangleGradientEx(rec,
+                                Fade(BLUE, y2),
+                                Fade(BLUE, y2),
+                                Fade(RED, x2),
+                                Fade(RED, x2)
+                                );
 
         EndDrawing();
     }
