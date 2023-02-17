@@ -1,0 +1,10 @@
+- dune init project hello
+- rm -r _build/
+- mv ./hello ./00_hello
+- cd ./00_hello
+  - dune-project: delete all but the first 2 functions
+  - rm hello.opam
+  - rm -r ./test
+  - bin/dune: remove public_name function
+  - bin/dune: add "raylib" library
+  - dune exec --display=quiet bin/main.exe
