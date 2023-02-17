@@ -1,0 +1,6 @@
+- mkdir ./projectName
+- cd ./projectName
+- dotnet new console
+ - dotnet add package Raylib-cs # released in 2018, idiomatic C#
+ - dotnet add package Raylib-CsLo # realeased in 2021, less idiomatic, more featurful
+- open with Rider
