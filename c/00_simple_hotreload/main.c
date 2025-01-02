@@ -28,12 +28,15 @@ int main() {
   TraceLog(LOG_INFO, ">>> Target monitor: %d", targetMonitor);
   TraceLog(LOG_INFO, ">>> Monitor count: %d", GetMonitorCount());
   if (targetMonitor < GetMonitorCount()) {
-    TraceLog(LOG_WARNING, ">>> Switching to monitor: %d", targetMonitor);
+    TraceLog(LOG_INFO, ">>> Switching to monitor: %d", targetMonitor);
     SetWindowMonitor(targetMonitor);
 
-    // The following 2 functions don't work well with my setup, don't use them.
+    // The following 2 functions didn't work well with my setup (Ubuntu 2204) + raylib v5.0.
+    // They cause the system resolution to go out of wack, even after game exit.
+    // The following 3 functions don't seem to work at all (NOOP) in raylib v5.5.
     // ToggleBorderlessWindowed();
     // ToggleFullscreen();
+    // MaximizeWindow();
   } else {
     TraceLog(LOG_WARNING, ">>> Invalid monitor index: %d", targetMonitor);
   }

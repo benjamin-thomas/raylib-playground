@@ -1,5 +1,21 @@
 # Dev workflow
 
+Used version: raylib v5.5
+
+## Step 0: install raylib
+
+Just copy the files to:
+
+- /usr/local/lib
+- /usr/local/include
+
+Then update the cache with:
+
+- ldconfig
+
+This make the compilation flags simpler, and works well with editors which make
+control-click link to the headers.
+
 ## Step 1: build everything and launch the app
 
 ```bash
