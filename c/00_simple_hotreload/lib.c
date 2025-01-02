@@ -4,7 +4,7 @@
 
 void update(State *state) {
   if (IsKeyPressed(KEY_F1)) {
-    printf("R pressed, reinitializing state\n");
+    printf("Resetting state!\n");
     state_init(state);
   }
 
