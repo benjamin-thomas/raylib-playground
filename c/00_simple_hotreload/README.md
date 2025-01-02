@@ -13,7 +13,7 @@ mkdir ./build/
 ## Step 2: recompile (which reloads) the shared lib on file change
 
 ```bash
-rg --files -t c | entr ./manage/build_lib
+rg --files -t c | entr -c ./manage/build_lib
 ```
 
 ## Step 3: change the code, and observe the hot-reload functionality

@@ -1,7 +1,0 @@
-#!/bin/bash
-
-set -e
-
-gcc -shared -fPIC lib.c -o ./build/lib.so.tmp
-
-mv ./build/lib.so{.tmp,}

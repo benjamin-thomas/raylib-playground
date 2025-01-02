@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -e
+
+gcc -c state.c -o ./build/state.o
+gcc main.c ./build/state.o -o ./build/main -ldl -lraylib
