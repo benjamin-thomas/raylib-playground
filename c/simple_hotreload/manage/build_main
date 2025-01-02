@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -e
+
+gcc main.c -o ./build/main -ldl -lraylib
