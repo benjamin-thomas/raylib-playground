@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -e
+
+gcc -Wall -Wextra -pedantic -c state.c -o ./build/state.o
+gcc -Wall -Wextra -pedantic main.c ./build/state.o -o ./build/main -ldl -lraylib

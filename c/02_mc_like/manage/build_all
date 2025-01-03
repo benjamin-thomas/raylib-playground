@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -e
+
+./manage/build_lib
+./manage/build_main
