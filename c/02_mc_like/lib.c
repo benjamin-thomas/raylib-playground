@@ -1,3 +1,4 @@
+#include <math.h>
 #include <raylib.h>
 #include <stdio.h>
 
@@ -11,8 +12,14 @@ typedef struct {
   Vector2 bottom;
 } texture_coord;
 
-#define BLOCKS_SIZE 5
+#define BLOCKS_SIZE 6
 texture_coord blocks[BLOCKS_SIZE] = {
+    {
+        .name = "air",
+        .sides = {.y = 0, .x = 0},
+        .top = {.y = 0, .x = 0},
+        .bottom = {.y = 0, .x = 0},
+    },
     {
         .name = "grass",
         .sides = {.y = 14, .x = 0},
@@ -151,49 +158,149 @@ void DrawCubeTextureRec(Texture2D texture, texture_rect t_rect,
   rlSetTexture(0);
 }
 
+Vector3 calculate_preview_position(Camera3D camera, float distance) {
+  // Calculate the direction vector from camera position to target
+  Vector3 dir = {
+      camera.target.x - camera.position.x,
+      camera.target.y - camera.position.y,
+      camera.target.z - camera.position.z,
+  };
+
+  // Normalize the direction vector
+  float length = sqrtf(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
+  dir.x /= length;
+  dir.y /= length;
+  dir.z /= length;
+
+  // Calculate the position at the given distance
+  Vector3 position = {
+      camera.position.x + dir.x * distance,
+      camera.position.y + dir.y * distance,
+      camera.position.z + dir.z * distance,
+  };
+
+  // Round to nearest whole number to snap to grid
+  position.x = roundf(position.x);
+  position.y = roundf(position.y);
+  position.z = roundf(position.z);
+
+  return position;
+}
+
+// BLOCK HANDLING START
+// Check if a position is within our world bounds
+bool is_position_valid(Vector3 pos) {
+  return pos.x >= 0 && pos.x < WORLD_SIZE_X && pos.y >= 0 &&
+         pos.y < WORLD_SIZE_Y && pos.z >= 0 && pos.z < WORLD_SIZE_Z;
+}
+
+// Set a block in the world if the position is valid
+void set_block(State* state, Vector3 pos, int block_type) {
+  // Convert floating point coordinates to integers
+  int x = (int)roundf(pos.x);
+  int y = (int)roundf(pos.y);
+  int z = (int)roundf(pos.z);
+
+  Vector3 int_pos = {x, y, z};
+  if (is_position_valid(int_pos)) {
+    state->world[x][y][z] = block_type;
+  }
+}
+
+// Get the block type at a position (returns 0 for invalid positions)
+int get_block(State* state, Vector3 pos) {
+  int x = (int)roundf(pos.x);
+  int y = (int)roundf(pos.y);
+  int z = (int)roundf(pos.z);
+
+  Vector3 int_pos = {x, y, z};
+  if (is_position_valid(int_pos)) {
+    return state->world[x][y][z];
+  }
+  return 0;  // Return air for invalid positions
+}
+// BLOCK HANDLING END
+
 void draw_3d_world(State* state) {
   BeginMode3D(state->camera);
-
-  DrawCube((Vector3){2.0f, 1.0f, 0.0f}, 2.0f, 2.0f, 2.0f, GREEN);
-  DrawCubeWires((Vector3){2.0f, 1.0f, 0.0f}, 2.0f, 2.0f, 2.0f, LIME);
 
   float cellWidth = state->atlas.width / 16.0f;
   float cellHeight = state->atlas.height / 16.0f;
 
-  texture_coord grass = blocks[state->atlas_idx];
+  // Draw all placed blocks
+  for (int x = 0; x < WORLD_SIZE_X; x++) {
+    for (int y = 0; y < WORLD_SIZE_Y; y++) {
+      for (int z = 0; z < WORLD_SIZE_Z; z++) {
+        int block_type = state->world[x][y][z];
+        if (block_type != 0) {  // Don't draw air blocks
+          texture_coord block_tex = blocks[block_type];
+          texture_rect t_rect = {
+              .width = cellWidth,
+              .height = cellHeight,
+              .sides =
+                  {
+                      .x = cellWidth * block_tex.sides.x,
+                      .y = cellHeight * block_tex.sides.y,
+                  },
+              .top =
+                  {
+                      .x = cellWidth * block_tex.top.x,
+                      .y = cellHeight * block_tex.top.y,
+                  },
+              .bottom =
+                  {
+                      .x = cellWidth * block_tex.bottom.x,
+                      .y = cellHeight * block_tex.bottom.y,
+                  },
+          };
 
-  texture_rect t_rect = {
-      .width = cellWidth,
-      .height = cellHeight,
+          Vector3 pos = {(float)x, (float)y, (float)z};
+          DrawCubeTextureRec(state->atlas, t_rect, pos, 1.0f, 1.0f, 1.0f,
+                             WHITE);
+        }
+      }
+    }
+  }
 
-      .sides =
-          {
-              .x = cellWidth * grass.sides.x,
-              .y = cellHeight * grass.sides.y,
-          },
-      .top =
-          {
-              .x = cellWidth * grass.top.x,
-              .y = cellHeight * grass.top.y,
-          },
-      .bottom =
-          {
-              .x = cellWidth * grass.bottom.x,
-              .y = cellHeight * grass.bottom.y,
-          },
-  };
+  // Draw the preview block
+  if (is_position_valid(state->preview_block_pos)) {
+    texture_coord preview_tex = blocks[state->atlas_idx];
+    texture_rect t_rect = {
+        .width = cellWidth,
+        .height = cellHeight,
+        .sides =
+            {
+                .x = cellWidth * preview_tex.sides.x,
+                .y = cellHeight * preview_tex.sides.y,
+            },
+        .top =
+            {
+                .x = cellWidth * preview_tex.top.x,
+                .y = cellHeight * preview_tex.top.y,
+            },
+        .bottom =
+            {
+                .x = cellWidth * preview_tex.bottom.x,
+                .y = cellHeight * preview_tex.bottom.y,
+            },
+    };
 
-  Vector3 pos = {0.0f, 1.0f, 0.0f};
-  DrawCubeTextureRec(state->atlas, t_rect, pos, 2.0f, 2.0f, 2.0f, WHITE);
+    DrawCubeTextureRec(state->atlas, t_rect, state->preview_block_pos, 1.0f,
+                       1.0f, 1.0f,
+                       Fade(WHITE, 0.7f));  // Semi-transparent preview
+  } else {
+    DrawCubeWires(state->preview_block_pos, 1.0f, 1.0f, 1.0f, DARKBROWN);
+    DrawCube(state->preview_block_pos, 1.0f, 1.0f, 1.0f, RED);
+  }
 
-  DrawGrid(8, 1.0f);
+  DrawGrid(WORLD_SIZE_X, 1.0f);
 
   EndMode3D();
 }
 
 void draw_2d_overlay(State* state) {
-  DrawRectangle(10, 10, 500, 110, Fade(SKYBLUE, 0.5f));
-  DrawRectangleLines(10, 10, 500, 110, BLUE);
+  DrawRectangle(10, 10, 500, 140, Fade(SKYBLUE, 0.5f));
+  DrawRectangleLines(10, 10, 500, 140, BLUE);
 
   const char* cam_pos_txt =
       TextFormat("Camera Position: (%02f,%02f, %02f)", state->camera.position.x,
@@ -211,6 +318,12 @@ void draw_2d_overlay(State* state) {
       "Block name: %s(%d)", blocks[state->atlas_idx].name, state->atlas_idx);
 
   DrawText(atlas_coord_txt, 20, 85, 20, BLACK);
+
+  const char* preview_pos_txt = TextFormat(
+      "Preview Position: (%.02f,%.02f, %.02f)", state->preview_block_pos.x,
+      state->preview_block_pos.y, state->preview_block_pos.z);
+
+  DrawText(preview_pos_txt, 20, 115, 20, BLACK);
 }
 
 void draw(State* state) {
@@ -249,10 +362,21 @@ void update(State* state) {
     }
   }
 
-  if (state->is_window_focused) UpdateCamera(&state->camera, CAMERA_FREE);
+  if (state->is_window_focused) {
+    UpdateCamera(&state->camera, CAMERA_FREE);
+
+    state->preview_block_pos = calculate_preview_position(state->camera, 8.0f);
+  }
 
   if (IsKeyPressed('Z')) {
     state->camera.target = (Vector3){0.0f, 0.0f, 0.0f};
+  }
+
+  // Place or remove blocks with mouse buttons
+  if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+    set_block(state, state->preview_block_pos, state->atlas_idx);
+  } else if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+    set_block(state, state->preview_block_pos, 0);  // Remove block (set to air)
   }
 }
 
